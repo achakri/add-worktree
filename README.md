@@ -186,4 +186,9 @@ copied files that are not ignored. Check them before deciding what to do.
 skills/add-worktree/
   SKILL.md               Instructions Claude follows
   scripts/add-worktree.sh
+LICENSE
 ```
+
+## License
+
+[MIT](LICENSE)

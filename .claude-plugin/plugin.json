@@ -4,5 +4,6 @@
   "author": {
     "name": "Ayoub Chakri"
   },
-  "repository": "https://github.com/achakri/add-worktree"
+  "repository": "https://github.com/achakri/add-worktree",
+  "license": "MIT"
 }
