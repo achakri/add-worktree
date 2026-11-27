@@ -8,7 +8,7 @@
     {
       "name": "add-worktree",
       "source": "./",
-      "description": "Create a Git worktree with your Claude Code configuration"
+      "description": "Create and remove Git worktrees set up with your Claude Code configuration"
     }
   ]
 }
