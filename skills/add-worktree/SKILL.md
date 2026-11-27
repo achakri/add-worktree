@@ -1,6 +1,6 @@
 ---
 name: add-worktree
-description: Create a Git worktree with the Claude Code configuration and open Claude there in a new terminal tab
+description: Create a Git worktree with the Claude Code configuration and .env file, and open Claude there in a new terminal tab
 argument-hint: <name>
 ---
 

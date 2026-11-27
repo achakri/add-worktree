@@ -3,9 +3,9 @@
 # Usage: add-worktree.sh <name>
 #
 # Creates the Git worktree ../<project>_<name> on branch <name> and copies the
-# Claude Code configuration from the main checkout into it. Rerunning it for an
-# existing worktree only copies missing files. Then opens a new terminal tab
-# running Claude there, unless ADD_WORKTREE_NO_TAB=1.
+# Claude Code configuration and .env from the main checkout into it. Rerunning
+# it for an existing worktree only copies missing files. Then opens a new
+# terminal tab running Claude there, unless ADD_WORKTREE_NO_TAB=1.
 #
 # Works with Bash 3.2 (macOS). Never uses --force and never deletes anything.
 
@@ -317,7 +317,7 @@ if [ "$rerun" = no ]; then
   fi
 fi
 
-# --- Claude configuration ----------------------------------------------------
+# --- Claude configuration and .env -------------------------------------------
 
 if [ -d "$main_root/.claude" ]; then
   # -H follows .claude itself if it is a symlink. An empty record means that
@@ -335,7 +335,7 @@ elif [ -e "$main_root/.claude" ] || [ -L "$main_root/.claude" ]; then
   warn "skipped .claude: it is not a folder or is a broken link"
 fi
 
-for item in CLAUDE.md CLAUDE.local.md .mcp.json .worktreeinclude; do
+for item in CLAUDE.md CLAUDE.local.md .mcp.json .worktreeinclude .env; do
   if [ -f "$main_root/$item" ] || [ -L "$main_root/$item" ]; then
     copy_item "$item"
   fi
