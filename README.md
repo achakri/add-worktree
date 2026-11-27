@@ -1,7 +1,8 @@
 # add-worktree
 
 A Claude Code skill that creates a Git worktree and copies your Claude Code
-configuration into it, so a new session there starts with the same setup.
+configuration and `.env` file into it, so a new session there starts with the
+same setup.
 
 ```
 /add-worktree feature/login
@@ -116,7 +117,7 @@ If `origin` exists, it is fetched first, and a failed fetch stops the script.
 | Branch only on `origin` | Local tracking branch created |
 | New branch | Created from the remote default branch, or from `HEAD` if that is unavailable |
 
-### Claude configuration
+### Copied files
 
 These are copied from the main checkout, when they exist:
 
@@ -125,6 +126,7 @@ These are copied from the main checkout, when they exist:
 - `CLAUDE.local.md`
 - `.mcp.json`
 - `.worktreeinclude`
+- `.env` (only this name, at the root; not `.env.local` and the like)
 
 `.worktreeinclude` is only copied. The script does not copy the files that its
 patterns list.
@@ -172,11 +174,13 @@ a new tab. It does not fetch or change the branch.
 
 ### Secrets
 
-`.mcp.json`, `CLAUDE.local.md` and files under `.claude/` may contain secrets.
+`.env`, `.mcp.json`, `CLAUDE.local.md` and files under `.claude/` may contain
+secrets.
 The script warns about each copied file that Git does not ignore. Add the
 private ones to your `.gitignore`, for example:
 
 ```gitignore
+.env
 CLAUDE.local.md
 .claude/settings.local.json
 .claude/worktrees/
