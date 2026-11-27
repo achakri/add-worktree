@@ -8,7 +8,8 @@ configuration into it, so a new session there starts with the same setup.
 ```
 
 For a project in a folder named `my-app`, this creates `../my-app_feature-login`
-on the branch `feature/login`, then prints the command to start Claude there.
+on the branch `feature/login`, then opens a new terminal tab running Claude
+there.
 
 ## Requirements
 
@@ -128,10 +129,37 @@ These are copied from the main checkout, when they exist:
 `.worktreeinclude` is only copied. The script does not copy the files that its
 patterns list.
 
+### New tab
+
+After a successful run, a new tab opens in your current terminal and starts
+Claude in the worktree.
+
+| Terminal | Notes |
+| --- | --- |
+| macOS Terminal | Presses Command-T, so macOS needs your permission (see below) |
+| iTerm2 | macOS may ask to let your terminal control iTerm2. Not tested |
+| tmux | Opens a new tmux window. Not tested with a real tmux |
+| Others | No tab. A warning is shown with the command to run |
+
+For macOS Terminal, allow **Terminal** in System Settings > Privacy & Security >
+**Accessibility**, and accept the prompt to control **System Events** if it
+appears. Do not switch applications while the tab is opening.
+
+If the tab cannot be opened, the worktree is still created and the command to
+start Claude is printed.
+
+To skip the tab, set `ADD_WORKTREE_NO_TAB=1`:
+
+```bash
+ADD_WORKTREE_NO_TAB=1 bash /path/to/add-worktree.sh <name>
+```
+
+In Claude Code, ask for no tab when you run the skill.
+
 ### Rerunning
 
-Running it again for an existing worktree only copies missing files. It does not
-fetch or change the branch.
+Running it again for an existing worktree only copies missing files, then opens
+a new tab. It does not fetch or change the branch.
 
 ## Safety
 

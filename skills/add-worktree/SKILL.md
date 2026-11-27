@@ -1,6 +1,6 @@
 ---
 name: add-worktree
-description: Create a Git worktree with the Claude Code configuration
+description: Create a Git worktree with the Claude Code configuration and open Claude there in a new terminal tab
 argument-hint: <name>
 ---
 
@@ -23,7 +23,11 @@ Requested name: `$ARGUMENTS`
    ```
 
 4. If it succeeds, show the folder path, the number of files copied, all
-   warnings, and the command to start Claude there.
+   warnings, and the command to start Claude there. The script also opens a new
+   terminal tab running Claude; say that it did only if the output says
+   `New tab: opened`. If it could not, the worktree is still ready: show the
+   warning, and do not try to open a tab or start Claude yourself. Set
+   `ADD_WORKTREE_NO_TAB=1` before `bash` only if the user asks for no tab.
 5. If it fails, show the error message and stop. Do not work around it: do not
    retry with another name, run Git commands to change the repository, use
    `--force`, delete or move anything, or copy files yourself. You may suggest

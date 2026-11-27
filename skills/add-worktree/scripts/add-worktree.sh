@@ -4,7 +4,8 @@
 #
 # Creates the Git worktree ../<project>_<name> on branch <name> and copies the
 # Claude Code configuration from the main checkout into it. Rerunning it for an
-# existing worktree only copies missing files.
+# existing worktree only copies missing files. Then opens a new terminal tab
+# running Claude there, unless ADD_WORKTREE_NO_TAB=1.
 #
 # Works with Bash 3.2 (macOS). Never uses --force and never deletes anything.
 
@@ -77,6 +78,89 @@ branch_folder() {
 
 shell_quote() {
   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+# Opens a new tab in the current terminal and runs the shell command $1 in it.
+# On failure, prints the reason and returns non-zero.
+open_tab() {
+  local pane
+
+  # tmux comes first: it runs inside another terminal. Its windows are its tabs.
+  if [ -n "${TMUX:-}" ]; then
+    pane=$(tmux new-window -P -F '#{pane_id}') &&
+      tmux send-keys -t "$pane" -l "$1" &&
+      tmux send-keys -t "$pane" Enter
+    return
+  fi
+
+  # The command is passed as an argument, never pasted into the AppleScript.
+  case ${TERM_PROGRAM:-} in
+    Apple_Terminal)
+      # Terminal cannot create a tab by script, so press Command-T, then run
+      # the command only in a tab that did not exist before.
+      osascript - "$1" <<'APPLESCRIPT'
+on terminalTTYs()
+  set ttyList to {}
+  tell application "Terminal"
+    repeat with w in windows
+      repeat with t in tabs of w
+        try
+          set end of ttyList to (tty of t as text)
+        end try
+      end repeat
+    end repeat
+  end tell
+  return ttyList
+end terminalTTYs
+
+on run argv
+  set oldTTYs to my terminalTTYs()
+  tell application "Terminal" to activate
+  delay 0.3
+  tell application "System Events"
+    set frontName to name of first process whose frontmost is true
+    if frontName is not "Terminal" then error "Terminal is not the frontmost application"
+    keystroke "t" using command down
+  end tell
+  repeat 30 times
+    delay 0.1
+    tell application "Terminal"
+      repeat with w in windows
+        repeat with t in tabs of w
+          try
+            set newTTY to (tty of t as text)
+          on error
+            set newTTY to ""
+          end try
+          if newTTY is not "" and oldTTYs does not contain newTTY then
+            do script (item 1 of argv) in t
+            return
+          end if
+        end repeat
+      end repeat
+    end tell
+  end repeat
+  error "no new tab appeared"
+end run
+APPLESCRIPT
+      ;;
+    iTerm.app)
+      osascript - "$1" <<'APPLESCRIPT'
+on run argv
+  tell application id "com.googlecode.iterm2"
+    tell current window
+      set newTab to (create tab with default profile)
+      tell current session of newTab to write text (item 1 of argv)
+    end tell
+  end tell
+end run
+APPLESCRIPT
+      ;;
+    *)
+      echo "not supported in this terminal (${TERM_PROGRAM:-unknown})"
+      return 1
+      ;;
+  esac
 }
 
 # Copies one file or symlink, given relative to the main checkout.
@@ -257,6 +341,27 @@ for item in CLAUDE.md CLAUDE.local.md .mcp.json .worktreeinclude; do
   fi
 done
 
+# --- New tab -----------------------------------------------------------------
+
+claude_command="cd $(shell_quote "$target") && claude"
+tab_opened=no
+if [ "${ADD_WORKTREE_NO_TAB:-}" != 1 ]; then
+  # A failure here is only a warning: the worktree is ready.
+  if reason=$(open_tab "$claude_command" 2>&1); then
+    tab_opened=yes
+  else
+    case $reason in
+      *1002* | *"not allowed"*)
+        reason="$reason Allow your terminal in System Settings > Privacy & Security > Accessibility."
+        ;;
+      *-1743* | *"Not authorized"*)
+        reason="$reason Allow your terminal in System Settings > Privacy & Security > Automation."
+        ;;
+    esac
+    warn "could not open a new tab: ${reason//$'\n'/ }"
+  fi
+fi
+
 # --- Summary -----------------------------------------------------------------
 
 echo "Worktree: $target"
@@ -266,5 +371,8 @@ if [ "${#warnings[@]}" -gt 0 ]; then
 else
   echo "Warnings: none"
 fi
+if [ "$tab_opened" = yes ]; then
+  echo "New tab: opened, starting Claude"
+fi
 echo "Start Claude with:"
-printf '  cd %s && claude\n' "$(shell_quote "$target")"
+printf '  %s\n' "$claude_command"
