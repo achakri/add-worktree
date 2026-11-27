@@ -1,0 +1,8 @@
+{
+  "name": "add-worktree",
+  "description": "Create a Git worktree with your Claude Code configuration",
+  "author": {
+    "name": "Ayoub Chakri"
+  },
+  "repository": "https://github.com/achakri/add-worktree"
+}

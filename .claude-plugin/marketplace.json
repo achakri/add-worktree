@@ -1,0 +1,14 @@
+{
+  "name": "achakri-tools",
+  "description": "Claude Code tools by achakri",
+  "owner": {
+    "name": "Ayoub Chakri"
+  },
+  "plugins": [
+    {
+      "name": "add-worktree",
+      "source": "./",
+      "description": "Create a Git worktree with your Claude Code configuration"
+    }
+  ]
+}

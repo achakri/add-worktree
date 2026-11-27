@@ -1,9 +1,11 @@
 ---
+name: add-worktree
 description: Create a Git worktree with the Claude Code configuration
 argument-hint: <name>
 ---
 
-Create a worktree with `scripts/add-worktree.sh`.
+Create a worktree with the script bundled with this skill,
+`${CLAUDE_SKILL_DIR}/scripts/add-worktree.sh`.
 
 Requested name: `$ARGUMENTS`
 
@@ -17,7 +19,7 @@ Requested name: `$ARGUMENTS`
    worktree. Replace `NAME` with the validated name and keep the single quotes:
 
    ```bash
-   main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')" && cd "$main" && bash scripts/add-worktree.sh 'NAME'
+   main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')" && cd "$main" && bash "${CLAUDE_SKILL_DIR}/scripts/add-worktree.sh" 'NAME'
    ```
 
 4. If it succeeds, show the folder path, the number of files copied, all
