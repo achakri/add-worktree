@@ -2,7 +2,7 @@
 
 A Claude Code skill that creates a Git worktree and copies your Claude Code
 configuration and `.env` file into it, so a new session there starts with the
-same setup.
+same setup. A second skill, `remove-worktree`, cleans up when you are done.
 
 ```
 /add-worktree feature/login
@@ -73,10 +73,10 @@ To install without the plugin system:
 ```bash
 git clone https://github.com/achakri/add-worktree.git
 mkdir -p ~/.claude/skills
-cp -R add-worktree/skills/add-worktree ~/.claude/skills/
+cp -R add-worktree/skills/add-worktree add-worktree/skills/remove-worktree ~/.claude/skills/
 ```
 
-If `~/.claude/skills/add-worktree` already exists, move it aside first, or
+If either folder already exists in `~/.claude/skills`, move it aside first, or
 `cp` will nest the new copy inside it.
 
 Use one install method, not both.
@@ -165,6 +165,8 @@ a new tab. It does not fetch or change the branch.
 
 ## Safety
 
+When adding a worktree, the script:
+
 - Never overwrites an existing file in the worktree.
 - Never uses `--force` and never deletes anything.
 - Stops if the target folder is used by something else, or if the branch is
@@ -190,14 +192,65 @@ CLAUDE.local.md
 
 ## Removing a worktree
 
-The script never removes worktrees. When you are done:
+In the Claude session of the worktree you are done with:
 
-```bash
-git worktree remove ../my-app_feature-login
+```
+/remove-worktree
 ```
 
-Git refuses if the worktree has modified or untracked files, which can include
-copied files that are not ignored. Check them before deciding what to do.
+This removes that worktree, deletes its local branch, and ends the terminal
+session, including Claude. Only you can run it; Claude cannot start it on its
+own. With the plugin, the full form is `/add-worktree:remove-worktree`.
+
+You can also run the script yourself, from inside the worktree:
+
+```bash
+bash /path/to/add-worktree/skills/remove-worktree/scripts/remove-worktree.sh
+```
+
+### What stops it
+
+Nothing is removed if:
+
+- There are uncommitted or untracked files.
+- An ignored configuration file (`.env`, `CLAUDE.md`, `CLAUDE.local.md`,
+  `.mcp.json`, `.worktreeinclude` or a file under `.claude/`) is new, or differs
+  from the main checkout. This includes a file changed only in the main
+  checkout.
+- The branch has commits that are on no other local branch and on no branch of
+  `origin`. A branch that was squash or rebase merged looks like this too.
+
+To discard all of these and remove the worktree anyway:
+
+```
+/remove-worktree --force
+```
+
+Even with `--force`, it never removes the main checkout, deletes `main`,
+`master` or the remote default branch, or removes a worktree that contains
+another one. It also needs a branch to be checked out.
+
+> **Warning:** other ignored files in the worktree, such as installed
+> dependencies, build output or `.env.local`, are deleted without a check.
+
+Branches on `origin` are never deleted.
+
+### Terminal session
+
+A few seconds after the removal, every process in the terminal is ended.
+
+| Terminal | What closes |
+| --- | --- |
+| macOS Terminal | The session, then the tab with Command-W (same permission as for opening a tab). Not tested |
+| iTerm2 | The session. Not tested |
+| tmux | The current pane. Not tested |
+| Others | The processes in the terminal |
+
+If the tab stays open in macOS Terminal, close it yourself. If no terminal is
+found, a warning is shown and nothing is ended.
+
+To keep the session, set `REMOVE_WORKTREE_KEEP_SESSION=1`, or ask for it when
+you run the skill.
 
 ## Troubleshooting
 
@@ -218,6 +271,9 @@ copied files that are not ignored. Check them before deciding what to do.
 skills/add-worktree/
   SKILL.md               Instructions Claude follows
   scripts/add-worktree.sh
+skills/remove-worktree/
+  SKILL.md
+  scripts/remove-worktree.sh
 LICENSE
 ```
 
